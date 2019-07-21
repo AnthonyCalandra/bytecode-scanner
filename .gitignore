@@ -1,0 +1,6 @@
+.depend
+*.o
+bc-scanner
+*.class
+*.java
+.tags*
