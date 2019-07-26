@@ -36,6 +36,7 @@ enum class attribute_info_type : uint8_t {
 class attribute_info {
 public:
   virtual attribute_info_type get_type() const = 0;
+  virtual ~attribute_info() = default;
 };
 
 using entry_attributes = std::vector<std::unique_ptr<attribute_info>>;

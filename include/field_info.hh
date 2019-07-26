@@ -31,12 +31,14 @@ enum class field_access_flags : uint16_t {
 };
 
 class field_info {
+  std::reference_wrapper<const constant_pool> cp;
   field_access_flags access_flags;
   constant_pool_entry_id name_index;
   constant_pool_entry_id descriptor_index;
   entry_attributes field_attributes;
-  field_info(field_access_flags access_flags, constant_pool_entry_id name_index,
-    constant_pool_entry_id descriptor_index, entry_attributes field_attributes);
+  field_info(const constant_pool& cp, field_access_flags access_flags,
+    constant_pool_entry_id name_index, constant_pool_entry_id descriptor_index,
+    entry_attributes field_attributes);
 public:
   static field_info parse_field(std::ifstream& file, const constant_pool& cp);
 };

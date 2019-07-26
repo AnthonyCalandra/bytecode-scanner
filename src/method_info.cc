@@ -40,10 +40,11 @@ method_info method_info::parse_method_info(std::ifstream& file, const constant_p
   auto access_flags = method_access_flags{access_flag_bytes};
   READ_U2_FIELD(name_index, "Failed to parse name index of method.");
   READ_U2_FIELD(descriptor_index, "Failed to parse descriptor index of method.");
-  return method_info{access_flags, name_index, descriptor_index, parse_attributes(file, cp)};
+  return method_info{cp, access_flags, name_index, descriptor_index, parse_attributes(file, cp)};
 }
 
-method_info::method_info(method_access_flags access_flags, constant_pool_entry_id name_index,
-  constant_pool_entry_id descriptor_index, entry_attributes method_attributes) :
-    access_flags{access_flags}, name_index{name_index}, descriptor_index{descriptor_index},
-    method_attributes{std::move(method_attributes)} {}
+method_info::method_info(const constant_pool& cp, method_access_flags access_flags,
+  constant_pool_entry_id name_index, constant_pool_entry_id descriptor_index,
+  entry_attributes method_attributes) :
+    cp{std::cref(cp)}, access_flags{access_flags}, name_index{name_index},
+    descriptor_index{descriptor_index}, method_attributes{std::move(method_attributes)} {}

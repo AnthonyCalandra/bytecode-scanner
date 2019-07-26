@@ -32,13 +32,28 @@ enum class method_access_flags : uint16_t {
 };
 
 class method_info {
+  std::reference_wrapper<const constant_pool> cp;
   method_access_flags access_flags;
   constant_pool_entry_id name_index;
   constant_pool_entry_id descriptor_index;
   entry_attributes method_attributes;
-  method_info(method_access_flags access_flags, constant_pool_entry_id name_index,
-    constant_pool_entry_id descriptor_index, entry_attributes method_attributes);
+  method_info(const constant_pool& cp, method_access_flags access_flags,
+    constant_pool_entry_id name_index, constant_pool_entry_id descriptor_index,
+    entry_attributes method_attributes);
+
 public:
+  constant_pool_entry_id get_name_index() const {
+    return name_index;
+  }
+
+  std::string get_name() const {
+    const constant_pool& cp_ref = cp;
+    // TODO change this to use `std::get<cp_utf8_entry>`.
+    const auto& method_name_utf8_ref = *std::get_if<cp_utf8_entry>(
+      &cp_ref.get_entry(name_index)->entry);
+    return method_name_utf8_ref.value;
+  }
+
   const entry_attributes& get_method_attributes() const {
     return method_attributes;
   }

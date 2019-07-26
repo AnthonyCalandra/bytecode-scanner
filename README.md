@@ -14,7 +14,7 @@ Output:
 ```
 > ./bc-scanner Test.class java/io/PrintStream
 Found the following java/io/PrintStream API calls in Test.class:
-	java/io/PrintStream.println on line 3
+	java/io/PrintStream.println in method main on line 3
 ```
 
 ## Limitations

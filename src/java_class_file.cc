@@ -68,11 +68,16 @@ java_class_file java_class_file::parse_class_file(const std::string& path) {
     interfaces_ids.push_back(entry_id);
   }
 
-  return java_class_file{
-    std::move(constant_pool), access_flags, this_index, super_index, std::move(interfaces_ids),
-    parse_fields(file, constant_pool), parse_methods(file, constant_pool),
-    parse_attributes(file, constant_pool)
+  auto class_instance = java_class_file{
+    std::move(constant_pool), access_flags, this_index, super_index, std::move(interfaces_ids)
   };
+  // Parsing fields, methods, and attributes are slightly different in this case because we need to
+  // store a reference to the constant pool for these classes. Despite the tight coupling, this is
+  // intentional to really simplify the user-facing API.
+  class_instance.fields = parse_fields(file, class_instance.cp);
+  class_instance.methods = parse_methods(file, class_instance.cp);
+  class_instance.attributes = parse_attributes(file, class_instance.cp);
+  return class_instance;
 }
 
 java_class_file::java_class_file(constant_pool cp, classfile_access_flag access_flags,
@@ -82,3 +87,8 @@ java_class_file::java_class_file(constant_pool cp, classfile_access_flag access_
     cp{std::move(cp)}, access_flags{access_flags}, this_index{this_index}, super_index{super_index},
     interfaces_ids{std::move(interfaces_ids)}, fields{std::move(fields)},
     methods{std::move(methods)}, attributes{std::move(attributes)} {}
+
+java_class_file::java_class_file(constant_pool cp, classfile_access_flag access_flags,
+  constant_pool_entry_id this_index, constant_pool_entry_id super_index,
+  std::vector<constant_pool_entry_id> interfaces_ids) :
+    java_class_file{std::move(cp), access_flags, this_index, super_index, std::move(interfaces_ids), {}, {}, {}} {}

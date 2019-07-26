@@ -41,12 +41,15 @@ class java_class_file {
   std::vector<field_info> fields;
   std::vector<method_info> methods;
   entry_attributes attributes;
-
+public:
   java_class_file(constant_pool cp, classfile_access_flag access_flags,
     constant_pool_entry_id this_index, constant_pool_entry_id super_index,
     std::vector<constant_pool_entry_id> interfaces_ids, std::vector<field_info> fields,
     std::vector<method_info> methods, entry_attributes attributes);
-public:
+
+  java_class_file(constant_pool cp, classfile_access_flag access_flags,
+    constant_pool_entry_id this_index, constant_pool_entry_id super_index,
+    std::vector<constant_pool_entry_id> interfaces_ids);
 
   const constant_pool& get_class_constant_pool() const {
     return cp;

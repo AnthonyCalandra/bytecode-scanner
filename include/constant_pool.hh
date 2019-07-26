@@ -42,12 +42,14 @@ struct constant_pool_entry_info {
   constant_pool_entry entry;
 };
 
-using constant_pool_entries = std::map<constant_pool_entry_id, const constant_pool_entry_info>;
+using constant_pool_entries = std::map<constant_pool_entry_id, constant_pool_entry_info>;
 
 class constant_pool {
   const constant_pool_entries entries;
-  constant_pool(constant_pool_entries entries);
 public:
+  constant_pool(constant_pool_entries entries);
+  constant_pool() = default;
+
   size_t size() const {
     return entries.size();
   }

@@ -19,7 +19,8 @@ src/attribute/runtime_invisible_parameter_annotations_attribute.cc \
 src/attribute/runtime_visible_annotations_attribute.cc \
 src/attribute/runtime_visible_parameter_annotations_attribute.cc \
 src/attribute/signature_attribute.cc src/attribute/source_file_attribute.cc \
-src/attribute/stack_map_table_attribute.cc src/attribute/synthetic_attribute.cc
+src/attribute/stack_map_table_attribute.cc src/attribute/synthetic_attribute.cc \
+src/find_api_calls.cc
 OBJS=$(subst .cc,.o,$(SRCS))
 
 all: build

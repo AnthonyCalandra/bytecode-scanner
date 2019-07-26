@@ -39,10 +39,11 @@ field_info field_info::parse_field(std::ifstream& file, const constant_pool& cp)
   auto access_flags = field_access_flags{access_flag_bytes};
   READ_U2_FIELD(name_index, "Failed to parse name index of field.");
   READ_U2_FIELD(descriptor_index, "Failed to parse descriptor index of field.");
-  return field_info{access_flags, name_index, descriptor_index, parse_attributes(file, cp)};
+  return field_info{cp, access_flags, name_index, descriptor_index, parse_attributes(file, cp)};
 }
 
-field_info::field_info(field_access_flags access_flags, constant_pool_entry_id name_index,
-  constant_pool_entry_id descriptor_index, entry_attributes field_attributes) :
-    access_flags{access_flags}, name_index{name_index}, descriptor_index{descriptor_index},
-    field_attributes{std::move(field_attributes)} {}
+field_info::field_info(const constant_pool& cp, field_access_flags access_flags,
+  constant_pool_entry_id name_index, constant_pool_entry_id descriptor_index,
+  entry_attributes field_attributes) :
+    cp{std::cref(cp)}, access_flags{access_flags}, name_index{name_index},
+    descriptor_index{descriptor_index}, field_attributes{std::move(field_attributes)} {}

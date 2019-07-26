@@ -43,6 +43,6 @@ std::unique_ptr<attribute_info> parse_code_attribute(std::ifstream& file,
     exception_table.emplace_back(exception_table_entry{start_pc, end_pc, handler_pc, catch_pc});
   }
 
-  return std::make_unique<code_attribute>(max_stack, max_locals, code_length, std::move(bytecode),
-    std::move(exception_table), parse_attributes(file, cp));
+  return std::make_unique<code_attribute>(max_stack, max_locals, code_length,
+    std::move(bytecode), std::move(exception_table), parse_attributes(file, cp));
 }

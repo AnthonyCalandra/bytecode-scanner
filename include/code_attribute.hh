@@ -48,9 +48,10 @@ class code_attribute: public attribute_info {
   entry_attributes code_attributes;
 
 public:
-  code_attribute(uint16_t max_stack, uint16_t max_locals, uint32_t code_length,
-    std::unique_ptr<uint8_t[]> bytecode, std::vector<exception_table_entry> exception_table,
-    entry_attributes code_attributes) : max_stack{max_stack}, max_locals{max_locals},
+  code_attribute(uint16_t max_stack, uint16_t max_locals,
+    uint32_t code_length, std::unique_ptr<uint8_t[]> bytecode,
+    std::vector<exception_table_entry> exception_table, entry_attributes code_attributes) :
+      max_stack{max_stack}, max_locals{max_locals},
       code_length{code_length}, bytecode{std::move(bytecode)},
       exception_table{std::move(exception_table)}, code_attributes{std::move(code_attributes)} {}
 
