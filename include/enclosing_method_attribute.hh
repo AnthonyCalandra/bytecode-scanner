@@ -30,7 +30,7 @@ class enclosing_method_attribute: public attribute_info {
   [[maybe_unused]] constant_pool_entry_id class_index;
   [[maybe_unused]] constant_pool_entry_id method_index;
 public:
-  enclosing_method_attribute(constant_pool_entry_id class_index,
+  explicit enclosing_method_attribute(constant_pool_entry_id class_index,
     constant_pool_entry_id method_index) : class_index{class_index}, method_index{method_index} {}
   virtual attribute_info_type get_type() const {
     return attribute_info_type::EnclosingMethod;

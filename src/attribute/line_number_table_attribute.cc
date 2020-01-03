@@ -32,7 +32,7 @@ std::unique_ptr<attribute_info> parse_line_number_table_attribute(std::ifstream&
   for (uint16_t curr_lnt_idx = 0; curr_lnt_idx < line_number_table_length; curr_lnt_idx++) {
     READ_U2_FIELD(start_pc, "Failed to parse start pc of LineNumberTable attribute.");
     READ_U2_FIELD(line_number, "Failed to parse line number of LineNumberTable attribute.");
-    line_number_table.emplace_back(line_number_table_entry{start_pc, line_number});
+    line_number_table.emplace_back(start_pc, line_number);
   }
 
   return std::make_unique<line_number_table_attribute>(std::move(line_number_table));

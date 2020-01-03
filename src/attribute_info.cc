@@ -139,8 +139,7 @@ entry_attributes parse_attributes(std::ifstream& file, const constant_pool& cp) 
       throw invalid_class_format{"Attribute name unidentifiable -- cp entry not utf8."};
     }
 
-    // TODO change this to `std::get<cp_utf8_entry>(cp_entry.entry)`.
-    const auto& utf8_entry = *std::get_if<cp_utf8_entry>(&cp_entry.entry);
+    const auto& utf8_entry = std::get<cp_utf8_entry>(cp_entry.entry);
     auto attribute_parser_it = attribute_parsers.find(utf8_entry.value);
     if (attribute_parser_it == attribute_parsers.cend()) {
       throw invalid_class_format{"Attribute parser not found."};

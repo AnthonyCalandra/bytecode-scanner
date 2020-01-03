@@ -28,7 +28,8 @@
 class signature_attribute: public attribute_info {
   constant_pool_entry_id signature_index;
 public:
-  signature_attribute(constant_pool_entry_id signature_index) : signature_index{signature_index} {}
+  explicit signature_attribute(constant_pool_entry_id signature_index) :
+    signature_index{signature_index} {}
 
   constant_pool_entry_id get_signature_index() const {
     return signature_index;

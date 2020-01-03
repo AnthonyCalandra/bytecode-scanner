@@ -40,7 +40,7 @@ std::unique_ptr<attribute_info> parse_code_attribute(std::ifstream& file,
     READ_U2_FIELD(end_pc, "Failed to parse end pc of Code attribute.");
     READ_U2_FIELD(handler_pc, "Failed to parse handler pc of Code attribute.");
     READ_U2_FIELD(catch_pc, "Failed to parse catch pc of Code attribute.");
-    exception_table.emplace_back(exception_table_entry{start_pc, end_pc, handler_pc, catch_pc});
+    exception_table.emplace_back(start_pc, end_pc, handler_pc, catch_pc);
   }
 
   return std::make_unique<code_attribute>(max_stack, max_locals, code_length,

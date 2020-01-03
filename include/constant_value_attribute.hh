@@ -28,7 +28,7 @@
 class constant_value_attribute: public attribute_info {
   constant_pool_entry_id constantvalue_index;
 public:
-  constant_value_attribute(constant_pool_entry_id constantvalue_index) :
+  explicit constant_value_attribute(constant_pool_entry_id constantvalue_index) :
     constantvalue_index{constantvalue_index} {}
 
   constant_pool_entry_id get_constant_value_index() const {

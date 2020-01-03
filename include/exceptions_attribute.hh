@@ -29,7 +29,7 @@
 class exceptions_attribute: public attribute_info {
   std::vector<constant_pool_entry_id> exception_index_table;
 public:
-  exceptions_attribute(std::vector<constant_pool_entry_id> exception_index_table) :
+  explicit exceptions_attribute(std::vector<constant_pool_entry_id> exception_index_table) :
     exception_index_table{std::move(exception_index_table)} {}
   virtual attribute_info_type get_type() const {
     return attribute_info_type::Exceptions;

@@ -28,7 +28,7 @@
 class source_file_attribute: public attribute_info {
   [[maybe_unused]] constant_pool_entry_id sourcefile_index;
 public:
-  source_file_attribute(constant_pool_entry_id sourcefile_index) :
+  explicit source_file_attribute(constant_pool_entry_id sourcefile_index) :
     sourcefile_index{sourcefile_index} {}
   virtual attribute_info_type get_type() const {
     return attribute_info_type::SourceFile;

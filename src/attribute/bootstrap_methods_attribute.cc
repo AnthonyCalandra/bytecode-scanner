@@ -35,12 +35,10 @@ std::unique_ptr<attribute_info> parse_bootstrap_methods_attribute(std::ifstream&
     std::vector<uint16_t> bootstrap_arguments;
     for (uint16_t curr_ba_idx = 0; curr_ba_idx < num_bootstrap_arguments; curr_ba_idx++) {
       READ_U2_FIELD(bootstrap_argument, "Failed to parse bootstrap argument of BootstrapMethods attribute.");
-      bootstrap_arguments.emplace_back(bootstrap_argument);
+      bootstrap_arguments.push_back(bootstrap_argument);
     }
 
-    bootstrap_methods.emplace_back(bootstrap_method_entry{
-      bootstrap_method_ref, std::move(bootstrap_arguments)
-    });
+    bootstrap_methods.emplace_back(bootstrap_method_ref, std::move(bootstrap_arguments));
   }
 
   return std::make_unique<bootstrap_methods_attribute>(std::move(bootstrap_methods));

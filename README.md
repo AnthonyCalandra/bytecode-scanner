@@ -6,15 +6,17 @@ Given the sourcefile as Test.java and the compiled classfile Test.class:
 ```java
 public class Test {
   public static void main(String[] args) {
+    ArrayList<Integer> list = new ArrayList<>(Arrays.asList(1, 2, 3));
     System.out.println("Hello world!");
   }
 }
 ```
 Output:
 ```
-> ./bc-scanner Test.class java/io/PrintStream
-Found the following java/io/PrintStream API calls in Test.class:
-	java/io/PrintStream.println in method main on line 3
+> ./bytecode-scanner -s "java.io.PrintStream,java.util.ArrayList" Test.class
+Found the following API calls in Test.class:
+	java/io/PrintStream.println in method main on line 4
+	java/util/ArrayList.<init> in method main on line 3
 ```
 
 ## Limitations

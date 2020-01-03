@@ -34,9 +34,8 @@ std::unique_ptr<attribute_info> parse_inner_classes_attribute(std::ifstream& fil
     READ_U2_FIELD(outer_class_info_index, "Failed to parse outer class info index of InnerClasses attribute.");
     READ_U2_FIELD(inner_name_index, "Failed to parse inner name index of InnerClasses attribute.");
     READ_U2_FIELD(inner_class_access_flags, "Failed to parse inner class access flags of InnerClasses attribute.");
-    inner_classes.emplace_back(inner_class_entry{
-      inner_class_info_index, outer_class_info_index, inner_name_index, inner_class_access_flags
-    });
+    inner_classes.emplace_back(inner_class_info_index, outer_class_info_index,
+      inner_name_index, inner_class_access_flags);
   }
 
   return std::make_unique<inner_classes_attribute>(std::move(inner_classes));

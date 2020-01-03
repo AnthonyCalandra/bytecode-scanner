@@ -31,12 +31,16 @@
 struct line_number_table_entry {
   uint16_t start_pc;
   uint16_t line_number;
+
+  explicit line_number_table_entry(uint16_t start_pc, uint16_t line_number) :
+    start_pc{start_pc}, line_number{line_number}
+  {}
 };
 
 class line_number_table_attribute: public attribute_info {
   std::vector<line_number_table_entry> line_number_table;
 public:
-  line_number_table_attribute(std::vector<line_number_table_entry> line_number_table) :
+  explicit line_number_table_attribute(std::vector<line_number_table_entry> line_number_table) :
     line_number_table{std::move(line_number_table)} {}
 
   std::optional<uint16_t> find_line_number_from_pc(uint16_t pc) const {

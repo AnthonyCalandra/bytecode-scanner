@@ -32,13 +32,22 @@ struct local_variable_table_entry {
   constant_pool_entry_id name_index;
   constant_pool_entry_id descriptor_index;
   uint16_t index;
+
+  explicit local_variable_table_entry(uint16_t start_pc, uint16_t length,
+    constant_pool_entry_id name_index, constant_pool_entry_id descriptor_index, uint16_t index) :
+      start_pc{start_pc}, length{length}, name_index{name_index}, descriptor_index{descriptor_index},
+      index{index}
+  {}
 };
 
 class local_variable_table_attribute: public attribute_info {
   std::vector<local_variable_table_entry> local_variable_table;
 public:
-  local_variable_table_attribute(std::vector<local_variable_table_entry> local_variable_table) :
-    local_variable_table{std::move(local_variable_table)} {}
+  explicit local_variable_table_attribute(
+    std::vector<local_variable_table_entry> local_variable_table) :
+      local_variable_table{std::move(local_variable_table)}
+  {}
+
   virtual attribute_info_type get_type() const {
     return attribute_info_type::LocalVariableTable;
   }

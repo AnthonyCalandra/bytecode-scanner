@@ -21,28 +21,67 @@
 #include <optional>
 #include <vector>
 
+#include "cxxopts.hh"
+
 #include "find_api_calls.hh"
 #include "invalid_class_format_exception.hh"
 #include "java_class_file.hh"
 
-int main(int argc, char** argv) {
-  if (argc != 3) {
-    std::cerr << "USAGE: " << argv[0] << " <classfile-name> <api-name>" << std::endl;
-    std::cerr << "EXAMPLE: " << argv[0] << " Foo.class java/io/PrintStream" << std::endl;
-    return -1;
-  }
+std::vector<std::string> normalize_api_names(std::vector<std::string> apis) {
+  std::for_each(apis.begin(), apis.end(), [](std::string& api) {
+    std::replace(api.begin(), api.end(), '.', '/');
+  });
+  return apis;
+}
 
-  std::string class_name = argv[1];
-  std::string api_name = argv[2];
+void do_command(cxxopts::ParseResult args) {
+  auto class_name = args["input"].as<std::string>();
+  // The constant pool stores APIs as, for example, "java/io/PrintStream" instead of the
+  // common convention of "java.io.PrintStream".
+  auto api_names = normalize_api_names(args["scan"].as<std::vector<std::string>>());
   try {
     const auto clazz = java_class_file::parse_class_file(class_name);
-    std::cout << "Found the following " << api_name << " API calls in " << class_name << ":" <<
-      std::endl;
-    find_api_calls(clazz, api_name);
+    std::cout << "Found the following API calls in " << class_name << ":" << std::endl;
+    const auto calls = find_api_calls(clazz, api_names);
+    for (const auto& call : calls) {
+      std::cout << '\t' << call.api_str << " in method " << call.method << " on line " <<
+        call.line_number << std::endl;
+    }
   } catch (const std::ios::failure& io_failure) {
     std::cerr << io_failure.what() << std::endl;
   } catch (const invalid_class_format& icf) {
     std::cerr << icf.what() << std::endl;
+  }
+}
+
+int main(int argc, char** argv) {
+  cxxopts::Options options("bytecode-scanner", "Java bytecode utility");
+  options
+    .allow_unrecognised_options()
+    .add_options()
+      ("input", "Input class file", cxxopts::value<std::string>())
+      ("s,scan", "Scan for a CSV list of APIs", cxxopts::value<std::vector<std::string>>())
+      ("a,dump-all", "Dump full class file information")
+      ("dump-cp", "Dump constant pool");
+  options.parse_positional({ "input" });
+
+  bool error = false;
+  try {
+    cxxopts::ParseResult args = options.parse(argc, argv);
+    if (!args.count("input")) {
+      error = true;
+    }
+
+    if (!error) {
+      do_command(std::move(args));
+    }
+  } catch (const cxxopts::OptionException& e) {
+    error = true;
+  }
+
+  if (error) {
+    std::cerr << options.help() << std::endl;
+    return 1;
   }
 
   return 0;

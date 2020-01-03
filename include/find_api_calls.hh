@@ -20,7 +20,15 @@
 #pragma once
 
 #include <optional>
+#include <vector>
 
 #include "java_class_file.hh"
 
-void find_api_calls(const java_class_file& clazz, const std::string api);
+struct api_call_info {
+  uint16_t line_number;
+  std::string api_str;
+  std::string method;
+};
+
+std::vector<api_call_info> find_api_calls(const java_class_file& clazz,
+  const std::vector<std::string>& apis);

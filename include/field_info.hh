@@ -36,7 +36,7 @@ class field_info {
   constant_pool_entry_id name_index;
   constant_pool_entry_id descriptor_index;
   entry_attributes field_attributes;
-  field_info(const constant_pool& cp, field_access_flags access_flags,
+  explicit field_info(const constant_pool& cp, field_access_flags access_flags,
     constant_pool_entry_id name_index, constant_pool_entry_id descriptor_index,
     entry_attributes field_attributes);
 public:

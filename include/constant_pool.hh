@@ -47,7 +47,7 @@ using constant_pool_entries = std::map<constant_pool_entry_id, constant_pool_ent
 class constant_pool {
   const constant_pool_entries entries;
 public:
-  constant_pool(constant_pool_entries entries);
+  explicit constant_pool(constant_pool_entries entries);
   constant_pool() = default;
 
   size_t size() const {

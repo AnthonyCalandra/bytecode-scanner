@@ -1,6 +1,6 @@
 .depend
 *.o
-bc-scanner
+bytecode-scanner
 *.class
 *.java
 .tags*

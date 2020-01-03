@@ -1,10 +1,10 @@
 CC=clang
 CXX=clang++
 RM=rm -f
-CPPFLAGS=-g -std=c++17 -Wall -stdlib=libc++ -Iinclude
+CPPFLAGS=-g -std=c++17 -Wall -stdlib=libc++ -Iinclude -Ilib
 LDFLAGS=-g -stdlib=libc++ -Iinclude
 LDLIBS=
-NAME=bc-scanner
+NAME=bytecode-scanner
 
 SRCS=src/main.cc src/java_class_file.cc src/constant_pool.cc src/constant_pool_entry_parser.cc \
 src/field_info.cc src/attribute_info.cc src/method_info.cc src/attribute/code_attribute.cc \

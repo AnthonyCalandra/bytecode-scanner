@@ -29,12 +29,18 @@
 struct bootstrap_method_entry {
   uint16_t bootstrap_method_ref;
   std::vector<uint16_t> bootstrap_arguments;
+
+  explicit bootstrap_method_entry(uint16_t bootstrap_method_ref,
+    std::vector<uint16_t> bootstrap_arguments) :
+      bootstrap_method_ref{bootstrap_method_ref},
+      bootstrap_arguments{bootstrap_arguments}
+  {}
 };
 
 class bootstrap_methods_attribute: public attribute_info {
   std::vector<bootstrap_method_entry> bootstrap_methods;
 public:
-  bootstrap_methods_attribute(std::vector<bootstrap_method_entry> bootstrap_methods) :
+  explicit bootstrap_methods_attribute(std::vector<bootstrap_method_entry> bootstrap_methods) :
     bootstrap_methods{std::move(bootstrap_methods)} {}
   virtual attribute_info_type get_type() const {
     return attribute_info_type::BootstrapMethods;

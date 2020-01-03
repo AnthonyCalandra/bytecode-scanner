@@ -37,7 +37,7 @@ class method_info {
   constant_pool_entry_id name_index;
   constant_pool_entry_id descriptor_index;
   entry_attributes method_attributes;
-  method_info(const constant_pool& cp, method_access_flags access_flags,
+  explicit method_info(const constant_pool& cp, method_access_flags access_flags,
     constant_pool_entry_id name_index, constant_pool_entry_id descriptor_index,
     entry_attributes method_attributes);
 
@@ -48,9 +48,8 @@ public:
 
   std::string get_name() const {
     const constant_pool& cp_ref = cp;
-    // TODO change this to use `std::get<cp_utf8_entry>`.
-    const auto& method_name_utf8_ref = *std::get_if<cp_utf8_entry>(
-      &cp_ref.get_entry(name_index)->entry);
+    const auto& method_name_utf8_ref = std::get<cp_utf8_entry>(
+      cp_ref.get_entry(name_index)->entry);
     return method_name_utf8_ref.value;
   }
 

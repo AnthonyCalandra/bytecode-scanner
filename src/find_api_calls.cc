@@ -17,6 +17,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <algorithm>
 #include <iostream>
 #include <optional>
 #include <vector>
@@ -28,31 +29,26 @@
 #include "java_class_file.hh"
 #include "line_number_table_attribute.hh"
 
-struct api_call_info {
-  uint16_t line_number;
-  std::string api_str;
-  std::string method;
-};
-
-std::optional<api_call_info> find_api_invoke(const constant_pool& cp, uint16_t pc, uint8_t high,
-    uint8_t low, const std::string& api) {
+std::optional<api_call_info> get_api_call_info(const constant_pool& cp, uint16_t pc,
+    uint8_t high, uint8_t low, const std::vector<std::string>& apis) {
   constant_pool_entry_id cp_method_ref = (high << 8) + low;
-  // TODO change this to use `std::get<cp_methodref_info_entry>`.
-  const auto& method_ref = *std::get_if<cp_methodref_info_entry>(
-    &cp.get_entry(cp_method_ref)->entry);
-  // TODO change this to use `std::get<cp_class_info_entry>`.
-  const auto& class_ref = *std::get_if<cp_class_info_entry>(
-    &cp.get_entry(method_ref.cp_index)->entry);
-  // TODO change this to use `std::get<cp_utf8_entry>`.
-  const auto& class_name_utf8_ref = *std::get_if<cp_utf8_entry>(
-    &cp.get_entry(class_ref.cp_index)->entry);
-  if (class_name_utf8_ref.value == api) {
-    // TODO change this to use `std::get<cp_name_and_type_index_entry>`.
-    const auto& name_and_type_ref = *std::get_if<cp_name_and_type_index_entry>(
-      &cp.get_entry(method_ref.cp_index2)->entry);
-    // TODO change this to use `std::get<cp_utf8_entry>`.
-    const auto& method_name_utf8_ref = *std::get_if<cp_utf8_entry>(
-      &cp.get_entry(name_and_type_ref.cp_index)->entry);
+  const auto& method_ref = std::get<cp_methodref_info_entry>(
+    cp.get_entry(cp_method_ref)->entry);
+  // Extract the class name from the method reference.
+  const auto& class_ref = std::get<cp_class_info_entry>(
+    cp.get_entry(method_ref.cp_index)->entry);
+  const auto& class_name_utf8_ref = std::get<cp_utf8_entry>(
+    cp.get_entry(class_ref.cp_index)->entry);
+  // If the class name matches ones we're looking for, get the method name too, and
+  // return the API handle.
+  auto apis_iter = std::find(apis.cbegin(), apis.cend(), class_name_utf8_ref.value);
+  if (apis_iter != apis.cend()) {
+    // Extract the method name from the constant pool.
+    const auto& name_and_type_ref = std::get<cp_name_and_type_index_entry>(
+      cp.get_entry(method_ref.cp_index2)->entry);
+    const auto& method_name_utf8_ref = std::get<cp_utf8_entry>(
+      cp.get_entry(name_and_type_ref.cp_index)->entry);
+
     return std::make_optional<api_call_info>({
       // Store the pc instead of line number for now.
       pc, class_name_utf8_ref.value + "." + method_name_utf8_ref.value, ""
@@ -75,7 +71,8 @@ uint16_t get_line_number(const code_attribute& code, uint16_t pc) {
   return 0;
 }
 
-void find_api_calls(const java_class_file& clazz, const std::string api) {
+std::vector<api_call_info> find_api_calls(const java_class_file& clazz,
+    const std::vector<std::string>& apis) {
   std::vector<api_call_info> calls;
   const auto& cp = clazz.get_class_constant_pool();
   for (const method_info& method: clazz.get_class_methods()) {
@@ -83,30 +80,21 @@ void find_api_calls(const java_class_file& clazz, const std::string api) {
       // The `Code` attribute contains raw bytecode and line number information.
       if (attr->get_type() == attribute_info_type::Code) {
         const auto& code_attr = dynamic_cast<const code_attribute&>(*attr);
+        const auto instruction_cb = [&](uint16_t pc, uint8_t high, uint8_t low) {
+          if (auto call = get_api_call_info(cp, pc, high, low, apis); call) {
+            call->line_number = get_line_number(code_attr, call->line_number);
+            call->method = method.get_name();
+            calls.emplace_back(*call);
+          }
+        };
+
         // Call the callback when an `invokevirtual` instruction is found in bytecode.
-        code_attr.find_instruction<bytecode_tag::INVOKEVIRTUAL>(
-          [&](uint16_t pc, uint8_t high, uint8_t low) {
-            if (auto call = find_api_invoke(cp, pc, high, low, api); call) {
-              call->line_number = get_line_number(code_attr, call->line_number);
-              call->method = method.get_name();
-              calls.emplace_back(*call);
-            }
-          });
+        code_attr.find_instruction<bytecode_tag::INVOKEVIRTUAL>(instruction_cb);
         // Call the callback when an `invokespecial` instruction is found in bytecode.
-        code_attr.find_instruction<bytecode_tag::INVOKESPECIAL>(
-          [&](uint16_t pc, uint8_t high, uint8_t low) {
-            if (auto call = find_api_invoke(cp, pc, high, low, api); call) {
-              call->line_number = get_line_number(code_attr, call->line_number);
-              call->method = method.get_name();
-              calls.emplace_back(*call);
-            }
-          });
+        code_attr.find_instruction<bytecode_tag::INVOKESPECIAL>(instruction_cb);
       }
     }
   }
 
-  for (const auto& call : calls) {
-    std::cout << '\t' << call.api_str << " in method " << call.method << " on line " <<
-      call.line_number << std::endl;
-  }
+  return calls;
 }

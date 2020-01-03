@@ -35,9 +35,7 @@ std::unique_ptr<attribute_info> parse_local_variable_table_attribute(std::ifstre
     READ_U2_FIELD(name_index, "Failed to parse name index of LocalVariableTable attribute.");
     READ_U2_FIELD(descriptor_index, "Failed to parse descriptor index of LocalVariableTable attribute.");
     READ_U2_FIELD(index, "Failed to parse index of LocalVariableTable attribute.");
-    local_variable_table.emplace_back(local_variable_table_entry{
-      start_pc, length, name_index, descriptor_index, index
-    });
+    local_variable_table.emplace_back(start_pc, length, name_index, descriptor_index, index);
   }
 
   return std::make_unique<local_variable_table_attribute>(std::move(local_variable_table));

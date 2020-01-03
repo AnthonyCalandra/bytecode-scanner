@@ -34,6 +34,11 @@ struct exception_table_entry {
   uint16_t end_pc;
   uint16_t handler_pc;
   uint16_t catch_pc;
+
+  explicit exception_table_entry(uint16_t start_pc, uint16_t end_pc, uint16_t handler_pc,
+    uint16_t catch_pc) :
+      start_pc{start_pc}, end_pc{end_pc}, handler_pc{handler_pc}, catch_pc{catch_pc}
+  {}
 };
 
 class code_attribute: public attribute_info {
@@ -48,7 +53,7 @@ class code_attribute: public attribute_info {
   entry_attributes code_attributes;
 
 public:
-  code_attribute(uint16_t max_stack, uint16_t max_locals,
+  explicit code_attribute(uint16_t max_stack, uint16_t max_locals,
     uint32_t code_length, std::unique_ptr<uint8_t[]> bytecode,
     std::vector<exception_table_entry> exception_table, entry_attributes code_attributes) :
       max_stack{max_stack}, max_locals{max_locals},

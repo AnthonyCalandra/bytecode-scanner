@@ -36,9 +36,7 @@ std::unique_ptr<attribute_info> parse_local_variable_type_table_attribute(std::i
     READ_U2_FIELD(name_index, "Failed to parse name index of LocalVariableTypeTable attribute.");
     READ_U2_FIELD(signature_index, "Failed to parse signature index of LocalVariableTypeTable attribute.");
     READ_U2_FIELD(index, "Failed to parse index of LocalVariableTypeTable attribute.");
-    local_variable_type_table.emplace_back(local_variable_type_table_entry{
-      start_pc, length, name_index, signature_index, index
-    });
+    local_variable_type_table.emplace_back(start_pc, length, name_index, signature_index, index);
   }
 
   return std::make_unique<local_variable_type_table_attribute>(std::move(local_variable_type_table));
