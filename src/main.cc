@@ -17,8 +17,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <algorithm>
 #include <iostream>
 #include <optional>
+#include <string>
 #include <vector>
 
 #include "cxxopts.hh"
@@ -27,18 +29,19 @@
 #include "invalid_class_format_exception.hh"
 #include "java_class_file.hh"
 
-std::vector<std::string> normalize_api_names(std::vector<std::string> apis) {
+std::vector<std::string> denormalize_api_names(std::vector<std::string> apis) {
   std::for_each(apis.begin(), apis.end(), [](std::string& api) {
     std::replace(api.begin(), api.end(), '.', '/');
+    api.erase(std::remove(api.begin(), api.end(), ' '), api.end());
   });
   return apis;
 }
 
 void do_command(cxxopts::ParseResult args) {
-  auto class_name = args["input"].as<std::string>();
+  const auto class_name = args["input"].as<std::string>();
   // The constant pool stores APIs as, for example, "java/io/PrintStream" instead of the
   // common convention of "java.io.PrintStream".
-  auto api_names = normalize_api_names(args["scan"].as<std::vector<std::string>>());
+  auto api_names = denormalize_api_names(args["scan"].as<std::vector<std::string>>());
   try {
     const auto clazz = java_class_file::parse_class_file(class_name);
     std::cout << "Found the following API calls in " << class_name << ":" << std::endl;
