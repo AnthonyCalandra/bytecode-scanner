@@ -35,7 +35,8 @@ enum class constant_pool_type : uint8_t {
 };
 
 using constant_pool_entry = std::variant<cp_utf8_entry, cp_integer_entry, cp_float_entry,
-  cp_long_entry, cp_double_entry, cp_index_entry, cp_double_index_entry, cp_methodhandle_info_entry>;
+  cp_long_entry, cp_double_entry, cp_index_entry, cp_double_index_entry,
+  cp_methodhandle_info_entry>;
 
 struct constant_pool_entry_info {
   constant_pool_type type;
@@ -52,6 +53,22 @@ public:
 
   size_t size() const {
     return entries.size();
+  }
+
+  auto begin() const {
+    return entries.begin();
+  }
+
+  auto end() const {
+    return entries.end();
+  }
+
+  auto cbegin() const {
+    return entries.cbegin();
+  }
+
+  auto cend() const {
+    return entries.cend();
   }
 
   std::optional<const constant_pool_entry_info> get_entry(constant_pool_entry_id index) const;

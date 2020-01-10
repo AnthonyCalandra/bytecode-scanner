@@ -21,6 +21,7 @@
 #include <iostream>
 #include <optional>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include "cxxopts.hh"
@@ -39,16 +40,62 @@ std::vector<std::string> denormalize_api_names(std::vector<std::string> apis) {
 
 void do_command(cxxopts::ParseResult args) {
   const auto class_name = args["input"].as<std::string>();
-  // The constant pool stores APIs as, for example, "java/io/PrintStream" instead of the
-  // common convention of "java.io.PrintStream".
-  auto api_names = denormalize_api_names(args["scan"].as<std::vector<std::string>>());
   try {
     const auto clazz = java_class_file::parse_class_file(class_name);
-    std::cout << "Found the following API calls in " << class_name << ":" << std::endl;
-    const auto calls = find_api_calls(clazz, api_names);
-    for (const auto& call : calls) {
-      std::cout << '\t' << call.api_str << " in method " << call.method << " on line " <<
-        call.line_number << std::endl;
+
+    if (args.count("dump-cp")) {
+      const auto& constant_pool = clazz.get_class_constant_pool();
+      for (const auto& [entry_id, entry_data] : constant_pool) {
+        const constant_pool_type entry_type = entry_data.type;
+        std::cout << '#' << entry_id << " = ";
+        std::visit([&entry_type](const auto& arg) {
+            using cp_entry_type = std::decay_t<decltype(arg)>;
+            if constexpr (std::is_same_v<cp_entry_type, cp_utf8_entry>)
+              std::cout << "Utf8";
+            else if constexpr (std::is_same_v<cp_entry_type, cp_integer_entry>)
+              std::cout << "Integer";
+            else if constexpr (std::is_same_v<cp_entry_type, cp_float_entry>)
+              std::cout << "Float";
+            else if constexpr (std::is_same_v<cp_entry_type, cp_long_entry>)
+              std::cout << "Long";
+            else if constexpr (std::is_same_v<cp_entry_type, cp_double_entry>)
+              std::cout << "Double";
+            else if constexpr (std::is_same_v<cp_entry_type, cp_methodhandle_info_entry>)
+              std::cout << "MethodHandle";
+            else if constexpr (std::is_same_v<cp_entry_type, cp_index_entry>) {
+              if (entry_type == constant_pool_type::Class)
+                std::cout << "Class";
+              else if (entry_type == constant_pool_type::String)
+                std::cout << "String";
+              else if (entry_type == constant_pool_type::MethodType)
+                std::cout << "MethodType";
+            } else if constexpr (std::is_same_v<cp_entry_type, cp_double_index_entry>) {
+              if (entry_type == constant_pool_type::FieldRef)
+                std::cout << "FieldRef";
+              else if (entry_type == constant_pool_type::MethodRef)
+                std::cout << "MethodRef";
+              else if (entry_type == constant_pool_type::InterfaceMethodRef)
+                std::cout << "InterfaceMethodRef";
+              else if (entry_type == constant_pool_type::NameAndType)
+                std::cout << "NameAndType";
+              else if (entry_type == constant_pool_type::InvokeDynamic)
+                std::cout << "InvokeDynamic";
+            }
+
+            std::cout << std::endl;
+        }, entry_data.entry);
+      }
+    } else if (args.count("scan")) {
+      // The constant pool stores APIs as, for example, "java/io/PrintStream" instead of the
+      // common convention of "java.io.PrintStream".
+      const auto api_names =
+        denormalize_api_names(args["scan"].as<std::vector<std::string>>());
+      std::cout << "Found the following API calls in " << class_name << ":" << std::endl;
+      const auto calls = find_api_calls(clazz, api_names);
+      for (const auto& call : calls) {
+        std::cout << '\t' << call.api_str << " in method " << call.method << " on line " <<
+          call.line_number << std::endl;
+      }
     }
   } catch (const std::ios::failure& io_failure) {
     std::cerr << io_failure.what() << std::endl;
@@ -63,9 +110,8 @@ int main(int argc, char** argv) {
     .allow_unrecognised_options()
     .add_options()
       ("input", "Input class file", cxxopts::value<std::string>())
-      ("s,scan", "Scan for a CSV list of APIs", cxxopts::value<std::vector<std::string>>())
-      ("a,dump-all", "Dump full class file information")
-      ("dump-cp", "Dump constant pool");
+      ("c,dump-cp", "Dump constant pool")
+      ("s,scan", "Scan for a CSV list of APIs", cxxopts::value<std::vector<std::string>>());
   options.parse_positional({ "input" });
 
   bool error = false;
