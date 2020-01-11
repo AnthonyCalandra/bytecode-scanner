@@ -48,41 +48,91 @@ void do_command(cxxopts::ParseResult args) {
       for (const auto& [entry_id, entry_data] : constant_pool) {
         const constant_pool_type entry_type = entry_data.type;
         std::cout << '#' << entry_id << " = ";
-        std::visit([&entry_type](const auto& arg) {
-            using cp_entry_type = std::decay_t<decltype(arg)>;
-            if constexpr (std::is_same_v<cp_entry_type, cp_utf8_entry>)
-              std::cout << "Utf8";
-            else if constexpr (std::is_same_v<cp_entry_type, cp_integer_entry>)
-              std::cout << "Integer";
-            else if constexpr (std::is_same_v<cp_entry_type, cp_float_entry>)
-              std::cout << "Float";
-            else if constexpr (std::is_same_v<cp_entry_type, cp_long_entry>)
-              std::cout << "Long";
-            else if constexpr (std::is_same_v<cp_entry_type, cp_double_entry>)
-              std::cout << "Double";
-            else if constexpr (std::is_same_v<cp_entry_type, cp_methodhandle_info_entry>)
-              std::cout << "MethodHandle";
-            else if constexpr (std::is_same_v<cp_entry_type, cp_index_entry>) {
-              if (entry_type == constant_pool_type::Class)
-                std::cout << "Class";
-              else if (entry_type == constant_pool_type::String)
-                std::cout << "String";
-              else if (entry_type == constant_pool_type::MethodType)
-                std::cout << "MethodType";
-            } else if constexpr (std::is_same_v<cp_entry_type, cp_double_index_entry>) {
-              if (entry_type == constant_pool_type::FieldRef)
-                std::cout << "FieldRef";
-              else if (entry_type == constant_pool_type::MethodRef)
-                std::cout << "MethodRef";
-              else if (entry_type == constant_pool_type::InterfaceMethodRef)
-                std::cout << "InterfaceMethodRef";
-              else if (entry_type == constant_pool_type::NameAndType)
-                std::cout << "NameAndType";
-              else if (entry_type == constant_pool_type::InvokeDynamic)
-                std::cout << "InvokeDynamic";
+        std::visit([&constant_pool, &entry_type](const auto& arg) {
+          using cp_entry_type = std::decay_t<decltype(arg)>;
+          if constexpr (std::is_same_v<cp_entry_type, cp_utf8_entry>)
+            std::cout << "Utf8\t\t" << arg.value;
+          else if constexpr (std::is_same_v<cp_entry_type, cp_integer_entry>)
+            std::cout << "Integer\t\t" << arg.value;
+          else if constexpr (std::is_same_v<cp_entry_type, cp_float_entry>)
+            std::cout << "Float\t\t" << arg.value;
+          else if constexpr (std::is_same_v<cp_entry_type, cp_long_entry>)
+            std::cout << "Long\t\t" << arg.value;
+          else if constexpr (std::is_same_v<cp_entry_type, cp_double_entry>)
+            std::cout << "Double\t\t" << arg.value;
+          else if constexpr (std::is_same_v<cp_entry_type, cp_methodhandle_info_entry>)
+            std::cout << "MethodHandle";
+          else if constexpr (std::is_same_v<cp_entry_type, cp_index_entry>) {
+            if (entry_type == constant_pool_type::Class)
+              std::cout << "Class";
+            else if (entry_type == constant_pool_type::String)
+              std::cout << "String";
+            else if (entry_type == constant_pool_type::MethodType)
+              std::cout << "MethodType";
+
+            std::cout << "\t\t#" << arg.cp_index;
+            // Class, String, and MethodType all point to a Utf8 index.
+            const constant_pool_entry_info cp_entry_info =
+              constant_pool.get_entry(arg.cp_index).value();
+            const auto& utf8_entry = std::get<cp_utf8_entry>(cp_entry_info.entry);
+            std::cout << "\t\t-> " << utf8_entry.value;
+          } else if constexpr (std::is_same_v<cp_entry_type, cp_double_index_entry>) {
+            if (entry_type == constant_pool_type::FieldRef)
+              std::cout << "FieldRef";
+            else if (entry_type == constant_pool_type::MethodRef)
+              std::cout << "MethodRef";
+            else if (entry_type == constant_pool_type::InterfaceMethodRef)
+              std::cout << "InterfaceMethodRef";
+            else if (entry_type == constant_pool_type::NameAndType)
+              std::cout << "NameAndType";
+            else if (entry_type == constant_pool_type::InvokeDynamic)
+              std::cout << "InvokeDynamic";
+
+            std::cout << "\t\t#" << arg.cp_index << ":#" << arg.cp_index2 << "\t\t -> ";
+            // These are used to allow the NameAndType entry logic to be reused for entries
+            // that have it as their second constant pool operand.
+            constant_pool_type current_entry_type = entry_type;
+            cp_double_index_entry current_entry = arg;
+            // FieldRef, MethodRef, and InterfaceMethodRef point to a Class entry and
+            // NameAndType entry.
+            if (current_entry_type == constant_pool_type::FieldRef ||
+                current_entry_type == constant_pool_type::MethodRef ||
+                current_entry_type == constant_pool_type::InterfaceMethodRef) {
+              // Get Class entry.
+              const constant_pool_entry_info class_entry_info =
+                constant_pool.get_entry(current_entry.cp_index).value();
+              const auto& class_entry = std::get<cp_class_info_entry>(class_entry_info.entry);
+              // From the Class entry, get the Utf8 entry.
+              const constant_pool_entry_info utf8_entry_info =
+                constant_pool.get_entry(class_entry.cp_index).value();
+              const auto& utf8_entry = std::get<cp_utf8_entry>(utf8_entry_info.entry);
+              std::cout << utf8_entry.value << ".";
+
+              // To avoid repeating code, set the current entry to the NameAndType entry.
+              const constant_pool_entry_info name_and_type_entry_info =
+                constant_pool.get_entry(current_entry.cp_index2).value();
+              current_entry_type = constant_pool_type::NameAndType;
+              current_entry =
+                std::get<cp_double_index_entry>(name_and_type_entry_info.entry);
             }
 
-            std::cout << std::endl;
+            // NameAndType points to two Utf8 entries.
+            if (current_entry_type == constant_pool_type::NameAndType) {
+              // Pull out the the Utf8 entries from NameAndType (respectively).
+              const constant_pool_entry_info name_entry_info =
+                constant_pool.get_entry(current_entry.cp_index).value();
+              const constant_pool_entry_info type_entry_info =
+                constant_pool.get_entry(current_entry.cp_index2).value();
+              const auto& name_utf8_entry = std::get<cp_utf8_entry>(name_entry_info.entry);
+              const auto& type_utf8_entry = std::get<cp_utf8_entry>(type_entry_info.entry);
+              // `<init>` has quotes around it according to Java's tool; follow their format.
+              std::string normalize_init = name_utf8_entry.value == "<init>"
+                ? "\"<init>\"" : name_utf8_entry.value;
+              std::cout << normalize_init << ":" << type_utf8_entry.value;
+            }
+          }
+
+          std::cout << std::endl;
         }, entry_data.entry);
       }
     } else if (args.count("scan")) {

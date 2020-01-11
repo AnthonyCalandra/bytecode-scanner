@@ -71,6 +71,6 @@ public:
     return entries.cend();
   }
 
-  std::optional<const constant_pool_entry_info> get_entry(constant_pool_entry_id index) const;
+  std::optional<constant_pool_entry_info> get_entry(constant_pool_entry_id index) const;
   static constant_pool parse_constant_pool(std::ifstream& file);
 };
