@@ -24,7 +24,8 @@
 class invalid_class_format: public std::runtime_error
 {
 public:
-    explicit invalid_class_format(const char* message) : std::runtime_error{message}
+    explicit invalid_class_format(const char* message) :
+        std::runtime_error{message}
     {}
 
     const char* what() const noexcept override

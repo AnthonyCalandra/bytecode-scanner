@@ -49,6 +49,9 @@ method_info method_info::parse_method_info(std::ifstream& file, const constant_p
 method_info::method_info(const constant_pool& cp, method_access_flags access_flags,
     constant_pool_entry_id name_index, constant_pool_entry_id descriptor_index,
     entry_attributes method_attributes) :
-    cp{std::cref(cp)}, access_flags{access_flags}, name_index{name_index},
-    descriptor_index{descriptor_index}, method_attributes{std::move(method_attributes)}
+        cp{std::cref(cp)},
+        access_flags{access_flags},
+        name_index{name_index},
+        descriptor_index{descriptor_index},
+        method_attributes{std::move(method_attributes)}
 {}

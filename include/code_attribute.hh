@@ -58,8 +58,10 @@ public:
     explicit code_attribute(uint16_t max_stack, uint16_t max_locals, uint32_t code_length,
         std::unique_ptr<uint8_t[]> bytecode, std::vector<exception_table_entry> exception_table,
         entry_attributes code_attributes) :
-            max_stack{max_stack}, max_locals{max_locals},
-            code_length{code_length}, bytecode{std::move(bytecode)},
+            max_stack{max_stack},
+            max_locals{max_locals},
+            code_length{code_length},
+            bytecode{std::move(bytecode)},
             exception_table{std::move(exception_table)},
             code_attributes{std::move(code_attributes)}
     {}
@@ -79,11 +81,10 @@ public:
             bytecode_tag curr_instr = static_cast<bytecode_tag>(bytecode[pc]);
             const size_t curr_instr_size = get_instruction_size(curr_instr);
             // These are variable-sized instructions and require special parsing.
-            if (curr_instr == bytecode_tag::LOOKUPSWITCH || curr_instr ==
-                bytecode_tag::TABLESWITCH)
+            if (curr_instr == bytecode_tag::LOOKUPSWITCH ||
+                curr_instr == bytecode_tag::TABLESWITCH)
             {
-                // Skip past padding bytes until we get to the first address that is a multiple of
-                // 4.
+                // Skip past padding bytes until we get to the first address that is a multiple of 4.
                 if (pc % 4 != 0)
                 {
                     for (; pc % 4 != 0; pc++);
@@ -119,6 +120,8 @@ public:
 
             if (curr_instr == instr)
             {
+                // The type of `operands` is a `std::tuple` with a variable number of types
+                // (depends on the cb function given).
                 typename function_args_tuple<decltype(cb)>::type operands;
                 std::get<0>(operands) = pc & 0xFFFF;
                 // A `constexpr-for` construct would be perfect here...

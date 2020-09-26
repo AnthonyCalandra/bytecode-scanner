@@ -91,7 +91,8 @@ constant_pool constant_pool::parse_constant_pool(std::ifstream& file)
     return constant_pool{std::move(entries)};
 }
 
-constant_pool::constant_pool(constant_pool_entries entries) : entries{std::move(entries)}
+constant_pool::constant_pool(constant_pool_entries entries) :
+    entries{std::move(entries)}
 {}
 
 std::optional<constant_pool_entry_info> constant_pool::get_entry(constant_pool_entry_id index)

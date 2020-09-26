@@ -34,7 +34,8 @@ struct line_number_table_entry
     uint16_t line_number;
 
     explicit line_number_table_entry(uint16_t start_pc, uint16_t line_number) :
-        start_pc{start_pc}, line_number{line_number}
+        start_pc{start_pc},
+        line_number{line_number}
     {}
 };
 

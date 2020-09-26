@@ -91,15 +91,19 @@ java_class_file::java_class_file(constant_pool cp, classfile_access_flag access_
     constant_pool_entry_id this_index, constant_pool_entry_id super_index,
     std::vector<constant_pool_entry_id> interfaces_ids, std::vector<field_info> fields,
     std::vector<method_info> methods, entry_attributes attributes) :
-        cp{std::move(cp)}, access_flags{access_flags}, this_index{this_index},
+        cp{std::move(cp)},
+        access_flags{access_flags},
+        this_index{this_index},
         super_index{super_index},
-        interfaces_ids{std::move(interfaces_ids)}, fields{std::move(fields)},
-        methods{std::move(methods)}, attributes{std::move(attributes)}
+        interfaces_ids{std::move(interfaces_ids)},
+        fields{std::move(fields)},
+        methods{std::move(methods)},
+        attributes{std::move(attributes)}
 {}
 
 java_class_file::java_class_file(constant_pool cp, classfile_access_flag access_flags,
     constant_pool_entry_id this_index, constant_pool_entry_id super_index,
     std::vector<constant_pool_entry_id> interfaces_ids) :
         java_class_file{std::move(cp), access_flags, this_index, super_index,
-        std::move(interfaces_ids), {}, {}, {}}
+            std::move(interfaces_ids), {}, {}, {}}
 {}

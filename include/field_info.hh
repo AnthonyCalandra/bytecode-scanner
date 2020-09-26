@@ -38,9 +38,10 @@ class field_info
     [[maybe_unused]] constant_pool_entry_id name_index;
     [[maybe_unused]] constant_pool_entry_id descriptor_index;
     entry_attributes field_attributes;
+
     explicit field_info(const constant_pool& cp, field_access_flags access_flags,
-    constant_pool_entry_id name_index, constant_pool_entry_id descriptor_index,
-    entry_attributes field_attributes);
+        constant_pool_entry_id name_index, constant_pool_entry_id descriptor_index,
+        entry_attributes field_attributes);
 
 public:
     static field_info parse_field(std::ifstream& file, const constant_pool& cp);

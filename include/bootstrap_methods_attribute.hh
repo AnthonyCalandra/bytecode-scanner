@@ -32,7 +32,8 @@ struct bootstrap_method_entry
     std::vector<uint16_t> bootstrap_arguments;
 
     explicit bootstrap_method_entry(uint16_t bootstrap_method_ref,
-        std::vector<uint16_t> bootstrap_arguments) : bootstrap_method_ref{bootstrap_method_ref},
+        std::vector<uint16_t> bootstrap_arguments) :
+            bootstrap_method_ref{bootstrap_method_ref},
             bootstrap_arguments{bootstrap_arguments}
     {}
 };

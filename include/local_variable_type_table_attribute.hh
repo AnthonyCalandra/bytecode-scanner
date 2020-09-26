@@ -36,8 +36,11 @@ struct local_variable_type_table_entry
 
     explicit local_variable_type_table_entry(uint16_t start_pc, uint16_t length,
         constant_pool_entry_id name_index, constant_pool_entry_id signature_index, uint16_t index) :
-            start_pc{start_pc}, length{length}, name_index{name_index},
-            signature_index{signature_index}, index{index}
+            start_pc{start_pc},
+            length{length},
+            name_index{name_index},
+            signature_index{signature_index},
+            index{index}
     {}
 };
 

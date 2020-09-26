@@ -37,7 +37,8 @@ struct inner_class_entry
         constant_pool_entry_id outer_class_info_index, constant_pool_entry_id inner_name_index,
         uint16_t inner_class_access_flags) :
             inner_class_info_index{inner_class_info_index},
-            outer_class_info_index{outer_class_info_index}, inner_name_index{inner_name_index},
+            outer_class_info_index{outer_class_info_index},
+            inner_name_index{inner_name_index},
             inner_class_access_flags{inner_class_access_flags}
     {}
 };
