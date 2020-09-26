@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <iostream>
 #include <optional>
+#include <sstream>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -45,55 +46,73 @@ void do_dump_cp(const java_class_file& clazz)
     const auto& constant_pool = clazz.get_class_constant_pool();
     for (const auto& [entry_id, entry_data] : constant_pool)
     {
-        const constant_pool_type entry_type = entry_data.type;
-        std::cout << '#' << entry_id << " = ";
+        std::stringstream id_str, entry_str, pointed_str;
+        id_str << "#" << entry_id << " = ";
 
+        const constant_pool_type entry_type = entry_data.type;
         // Convert each constant pool entry to a printable string.
-        std::visit([&constant_pool, &entry_type](const auto& arg)
+        std::visit([&](const auto& arg)
         {
             using cp_entry_type = std::decay_t<decltype(arg)>;
             if constexpr (std::is_same_v<cp_entry_type, cp_utf8_entry>)
-                std::cout << "Utf8\t\t" << arg.value;
+            {
+                id_str << "Utf8";
+                entry_str << arg.value;
+            }
             else if constexpr (std::is_same_v<cp_entry_type, cp_integer_entry>)
-                std::cout << "Integer\t\t" << arg.value;
+            {
+                id_str << "Integer";
+                entry_str << arg.value;
+            }
             else if constexpr (std::is_same_v<cp_entry_type, cp_float_entry>)
-                std::cout << "Float\t\t" << arg.value;
+            {
+                id_str << "Float";
+                entry_str << arg.value;
+            }
             else if constexpr (std::is_same_v<cp_entry_type, cp_long_entry>)
-                std::cout << "Long\t\t" << arg.value;
+            {
+                id_str << "Long";
+                entry_str << arg.value;
+            }
             else if constexpr (std::is_same_v<cp_entry_type, cp_double_entry>)
-                std::cout << "Double\t\t" << arg.value;
+            {
+                id_str << "Double";
+                entry_str << arg.value;
+            }
             else if constexpr (std::is_same_v<cp_entry_type, cp_methodhandle_info_entry>)
-                std::cout << "MethodHandle";
+                id_str << "MethodHandle";
             else if constexpr (std::is_same_v<cp_entry_type, cp_index_entry>)
             {
                 if (entry_type == constant_pool_type::Class)
-                    std::cout << "Class";
+                    id_str << "Class";
                 else if (entry_type == constant_pool_type::String)
-                    std::cout << "String";
+                    id_str << "String";
                 else if (entry_type == constant_pool_type::MethodType)
-                    std::cout << "MethodType";
+                    id_str << "MethodType";
 
-                std::cout << "\t\t#" << arg.cp_index;
+                entry_str << "#" << arg.cp_index;
 
                 // Class, String, and MethodType all point to a Utf8 index.
                 const constant_pool_entry_info cp_entry_info = constant_pool.get_entry(arg.cp_index).value();
                 const auto& utf8_entry = std::get<cp_utf8_entry>(cp_entry_info.entry);
-                std::cout << "\t\t-> " << utf8_entry.value;
+
+                pointed_str << "-> " << utf8_entry.value;
             }
             else if constexpr (std::is_same_v<cp_entry_type, cp_double_index_entry>)
             {
                 if (entry_type == constant_pool_type::FieldRef)
-                    std::cout << "FieldRef";
+                    id_str << "FieldRef";
                 else if (entry_type == constant_pool_type::MethodRef)
-                    std::cout << "MethodRef";
+                    id_str << "MethodRef";
                 else if (entry_type == constant_pool_type::InterfaceMethodRef)
-                    std::cout << "InterfaceMethodRef";
+                    id_str << "InterfaceMethodRef";
                 else if (entry_type == constant_pool_type::NameAndType)
-                    std::cout << "NameAndType";
+                    id_str << "NameAndType";
                 else if (entry_type == constant_pool_type::InvokeDynamic)
-                    std::cout << "InvokeDynamic";
+                    id_str << "InvokeDynamic";
 
-                std::cout << "\t\t#" << arg.cp_index << ":#" << arg.cp_index2 << "\t\t -> ";
+                entry_str << "#" << arg.cp_index << ":#" << arg.cp_index2;
+                pointed_str << "-> ";
 
                 // These are used to allow the NameAndType entry logic to be reused for
                 // entries that have it as their second constant pool operand.
@@ -115,7 +134,7 @@ void do_dump_cp(const java_class_file& clazz)
                         constant_pool.get_entry(class_entry.cp_index).value();
                     const auto& utf8_entry = std::get<cp_utf8_entry>(utf8_entry_info.entry);
 
-                    std::cout << utf8_entry.value << ".";
+                    pointed_str << utf8_entry.value << ".";
 
                     // To avoid repeating code, set the current entry to the NameAndType
                     // entry.
@@ -141,12 +160,43 @@ void do_dump_cp(const java_class_file& clazz)
                     std::string normalize_init = name_utf8_entry.value == "<init>"
                         ? "\"<init>\""
                         : name_utf8_entry.value;
-                    std::cout << normalize_init << ":" << type_utf8_entry.value;
+                    pointed_str << normalize_init << ":" << type_utf8_entry.value;
                 }
             }
-
-            std::cout << std::endl;
         }, entry_data.entry);
+
+        id_col.push_back(id_str.str());
+        entry_col.push_back(entry_str.str());
+        pointed_col.push_back(pointed_str.str());
+    }
+
+    // If any of the column entries are different sizes, it's likely the class parsing failed silently.
+    if (id_col.size() != entry_col.size() || entry_col.size() != pointed_col.size())
+    {
+        throw invalid_class_format{"Failed to dump constant pool."};
+    }
+
+    // If there is nothing to output, just return.
+    if (!id_col.size() || !entry_col.size() || !pointed_col.size())
+    {
+        return;
+    }
+
+    const auto str_compare = [](const std::string& lhs, const std::string& rhs) {
+        return lhs.size() < rhs.size();
+    };
+    auto id_col_longest = std::max_element(id_col.cbegin(), id_col.cend(), str_compare)->size();
+    auto entry_col_longest = std::max_element(entry_col.cbegin(), entry_col.cend(), str_compare)->size();
+    auto pointed_col_longest = std::max_element(pointed_col.cbegin(), pointed_col.cend(), str_compare)->size();
+
+    for (size_t i = 0; i < id_col.size(); i++)
+    {
+        std::cout
+            << std::left
+            << std::setw(id_col_longest + 1) << id_col[i]
+            << std::setw(entry_col_longest + 1) << entry_col[i]
+            << std::setw(pointed_col_longest) << pointed_col[i]
+            << std::endl;
     }
 }
 
