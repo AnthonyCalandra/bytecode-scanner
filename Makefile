@@ -1,8 +1,8 @@
 CC=clang
 CXX=clang++
 RM=rm -f
-CPPFLAGS=-g -std=c++17 -Wall -stdlib=libc++ -Iinclude -Ilib
-LDFLAGS=-g -stdlib=libc++ -Iinclude
+CPPFLAGS=-g -std=c++17 -Wall -Iinclude -Ilib
+LDFLAGS=-g -Iinclude
 LDLIBS=
 NAME=bytecode-scanner
 
