@@ -6,7 +6,7 @@ LDFLAGS=-g -Iinclude
 LDLIBS=
 NAME=bytecode-scanner
 
-SRCS=src/main.cc src/java_class_file.cc src/constant_pool.cc src/constant_pool_entry_parser.cc \
+SRCS=src/main.cc src/java_class.cc src/constant_pool.cc src/constant_pool_entry_parser.cc \
 src/field_info.cc src/attribute_info.cc src/method_info.cc src/attribute/code_attribute.cc \
 src/attribute/bootstrap_methods_attribute.cc \
 src/attribute/annotation_default_attribute.cc src/attribute/constant_value_attribute.cc \

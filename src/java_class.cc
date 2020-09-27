@@ -23,7 +23,7 @@
 #include "constant_pool.hh"
 #include "field_info.hh"
 #include "invalid_class_format_exception.hh"
-#include "java_class_file.hh"
+#include "java_class.hh"
 #include "method_info.hh"
 #include "util.hh"
 
@@ -35,7 +35,7 @@ struct version_info
     uint16_t major_version;
 };
 
-java_class_file java_class_file::parse_class_file(const std::string& path)
+java_class java_class::parse_class_file(const std::string& path)
 {
     std::ifstream file {path, std::ios::binary};
     if (!file.is_open())
@@ -75,7 +75,7 @@ java_class_file java_class_file::parse_class_file(const std::string& path)
         interfaces_ids.push_back(entry_id);
     }
 
-    auto class_instance = java_class_file{
+    auto class_instance = java_class{
         std::move(constant_pool), access_flags, this_index, super_index, std::move(interfaces_ids)
     };
     // Parsing fields, methods, and attributes are slightly different in this case because we need
@@ -87,7 +87,7 @@ java_class_file java_class_file::parse_class_file(const std::string& path)
     return class_instance;
 }
 
-java_class_file::java_class_file(constant_pool cp, classfile_access_flag access_flags,
+java_class::java_class(constant_pool cp, classfile_access_flag access_flags,
     constant_pool_entry_id this_index, constant_pool_entry_id super_index,
     std::vector<constant_pool_entry_id> interfaces_ids, std::vector<field_info> fields,
     std::vector<method_info> methods, entry_attributes attributes) :
@@ -101,9 +101,9 @@ java_class_file::java_class_file(constant_pool cp, classfile_access_flag access_
         attributes{std::move(attributes)}
 {}
 
-java_class_file::java_class_file(constant_pool cp, classfile_access_flag access_flags,
+java_class::java_class(constant_pool cp, classfile_access_flag access_flags,
     constant_pool_entry_id this_index, constant_pool_entry_id super_index,
     std::vector<constant_pool_entry_id> interfaces_ids) :
-        java_class_file{std::move(cp), access_flags, this_index, super_index,
+        java_class{std::move(cp), access_flags, this_index, super_index,
             std::move(interfaces_ids), {}, {}, {}}
 {}

@@ -22,7 +22,7 @@
 #include <optional>
 #include <vector>
 
-#include "java_class_file.hh"
+#include "java_class.hh"
 
 struct api_call_info
 {
@@ -31,5 +31,5 @@ struct api_call_info
     std::string method;
 };
 
-std::vector<api_call_info> find_api_calls(const java_class_file& clazz,
+std::vector<api_call_info> find_api_calls(const java_class& clazz,
     const std::vector<std::string>& apis);

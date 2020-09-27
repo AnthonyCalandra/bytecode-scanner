@@ -33,7 +33,7 @@ enum class classfile_access_flag : uint16_t
     Synthetic = 0x1000, Annotation = 0x2000, Enum = 0x4000
 };
 
-class java_class_file
+class java_class
 {
     constant_pool cp;
     classfile_access_flag access_flags;
@@ -45,12 +45,12 @@ class java_class_file
     entry_attributes attributes;
 
 public:
-    explicit java_class_file(constant_pool cp, classfile_access_flag access_flags,
+    explicit java_class(constant_pool cp, classfile_access_flag access_flags,
         constant_pool_entry_id this_index, constant_pool_entry_id super_index,
         std::vector<constant_pool_entry_id> interfaces_ids, std::vector<field_info> fields,
         std::vector<method_info> methods, entry_attributes attributes);
 
-    explicit java_class_file(constant_pool cp, classfile_access_flag access_flags,
+    explicit java_class(constant_pool cp, classfile_access_flag access_flags,
         constant_pool_entry_id this_index, constant_pool_entry_id super_index,
         std::vector<constant_pool_entry_id> interfaces_ids);
 
@@ -94,5 +94,5 @@ public:
         return attributes;
     }
 
-    static java_class_file parse_class_file(const std::string& path);
+    static java_class parse_class_file(const std::string& path);
 };

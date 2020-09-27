@@ -26,7 +26,7 @@
 #include "code_attribute.hh"
 #include "find_api_calls.hh"
 #include "invalid_class_format_exception.hh"
-#include "java_class_file.hh"
+#include "java_class.hh"
 #include "line_number_table_attribute.hh"
 
 std::optional<api_call_info> get_api_call_info(const constant_pool& cp, uint16_t pc, uint8_t high, uint8_t low,
@@ -71,7 +71,7 @@ uint16_t get_line_number(const code_attribute& code, uint16_t pc)
     return 0;
 }
 
-std::vector<api_call_info> find_api_calls(const java_class_file& clazz, const std::vector<std::string>& apis)
+std::vector<api_call_info> find_api_calls(const java_class& clazz, const std::vector<std::string>& apis)
 {
     std::vector<api_call_info> calls;
     const auto& cp = clazz.get_class_constant_pool();

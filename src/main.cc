@@ -30,7 +30,7 @@
 
 #include "find_api_calls.hh"
 #include "invalid_class_format_exception.hh"
-#include "java_class_file.hh"
+#include "java_class.hh"
 
 void denormalize_api_names(std::vector<std::string>& apis)
 {
@@ -41,7 +41,7 @@ void denormalize_api_names(std::vector<std::string>& apis)
     });
 }
 
-void do_dump_cp(const java_class_file& clazz)
+void do_dump_cp(const java_class& clazz)
 {
     std::vector<std::string> id_col, entry_col, pointed_col;
     const auto& constant_pool = clazz.get_class_constant_pool();
@@ -201,7 +201,7 @@ void do_dump_cp(const java_class_file& clazz)
     }
 }
 
-void do_scan(const java_class_file& clazz, const std::string& class_name, const std::vector<std::string>& api_names)
+void do_scan(const java_class& clazz, const std::string& class_name, const std::vector<std::string>& api_names)
 {
     std::cout << "Found the following API calls in " << class_name << ":" << std::endl;
     const auto calls = find_api_calls(clazz, api_names);
@@ -216,7 +216,7 @@ void do_command(cxxopts::ParseResult args) {
     const auto class_name = args["input"].as<std::string>();
     try
     {
-        const auto clazz = java_class_file::parse_class_file(class_name);
+        const auto clazz = java_class::parse_class_file(class_name);
         if (args.count("dump-cp"))
         {
             do_dump_cp(clazz);
