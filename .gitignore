@@ -4,3 +4,5 @@ bytecode-scanner
 *.class
 *.java
 .tags*
+bytecode-scanner.ilk
+bytecode-scanner.pdb
