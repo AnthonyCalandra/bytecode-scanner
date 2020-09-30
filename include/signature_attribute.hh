@@ -41,7 +41,7 @@ public:
 
     virtual attribute_info_type get_type() const
     {
-        return attribute_info_type::Signature;
+        return attribute_info_type::signature;
     }
 };
 

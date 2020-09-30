@@ -143,7 +143,7 @@ entry_attributes parse_attributes(std::ifstream& file, const constant_pool& cp)
     {
         READ_U2_FIELD(attribute_name_index, "Failed to parse attribute name index of field.");
         READ_U4_FIELD(attribute_length, "Failed to parse attribute length of field.");
-        auto cp_entry_handle = cp.get_entry(attribute_name_index);
+        auto cp_entry_handle = cp.get_entry_info(attribute_name_index);
         // Unexpected attribute entries must be ignored according to the JVM spec.
         if (!cp_entry_handle)
         {
@@ -152,7 +152,7 @@ entry_attributes parse_attributes(std::ifstream& file, const constant_pool& cp)
             continue;
         }
 
-        const constant_pool_entry_info& cp_entry = *cp_entry_handle;
+        constant_pool_entry_info cp_entry = cp_entry_handle.value();
         // At this point, a valid cp entry has been found but is not a UTF8 symbol. Since
         // attributes must be identified by the UTF8 entry value, the class is probably malformed.
         if (cp_entry.type != constant_pool_type::Utf8)
@@ -160,7 +160,7 @@ entry_attributes parse_attributes(std::ifstream& file, const constant_pool& cp)
             throw invalid_class_format{"Attribute name unidentifiable -- cp entry not utf8."};
         }
 
-        const auto& utf8_entry = std::get<cp_utf8_entry>(cp_entry.entry);
+        auto utf8_entry = std::get<cp_utf8_entry>(cp_entry.entry);
         auto attribute_parser_it = attribute_parsers.find(utf8_entry.value);
         if (attribute_parser_it == attribute_parsers.cend())
         {

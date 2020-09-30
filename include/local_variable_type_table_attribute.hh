@@ -55,7 +55,7 @@ public:
 
     virtual attribute_info_type get_type() const
     {
-        return attribute_info_type::LocalVariableTypeTable;
+        return attribute_info_type::local_variable_type_table;
     }
 };
 

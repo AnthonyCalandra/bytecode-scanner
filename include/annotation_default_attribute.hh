@@ -31,7 +31,7 @@ public:
     annotation_default_attribute() = default;
     virtual attribute_info_type get_type() const
     {
-        return attribute_info_type::AnnotationDefault;
+        return attribute_info_type::annotation_default;
     }
 };
 

@@ -27,11 +27,11 @@
 
 enum class attribute_info_type : uint8_t
 {
-    ConstantValue, Code, StackMapTable, Exceptions, InnerClasses, EnclosingMethod, Synthetic,
-    Signature, SourceFile, SourceDebugExtension, LineNumberTable, LocalVariableTable,
-    LocalVariableTypeTable, Deprecated, RuntimeVisibleAnnotations, RuntimeInvisibleAnnotations,
-    RuntimeVisibleParameterAnnotations, RuntimeInvisibleParameterAnnotations, AnnotationDefault,
-    BootstrapMethods
+    constant_value, code, stack_map_table, exceptions, inner_classes, enclosing_method, synthetic,
+    signature, source_file, source_debug_extension, line_number_table, local_variable_table,
+    local_variable_type_table, deprecated, runtime_visible_annotations, runtime_invisible_annotations,
+    runtime_visible_parameter_annotations, runtime_invisible_parameter_annotations, annotation_default,
+    bootstrap_methods
 };
 
 class attribute_info

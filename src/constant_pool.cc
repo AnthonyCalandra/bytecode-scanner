@@ -95,7 +95,7 @@ constant_pool::constant_pool(constant_pool_entries entries) :
     entries{std::move(entries)}
 {}
 
-std::optional<constant_pool_entry_info> constant_pool::get_entry(constant_pool_entry_id index)
+std::optional<constant_pool_entry_info> constant_pool::get_entry_info(constant_pool_entry_id index)
 const
 {
     auto entries_it = entries.find(index);

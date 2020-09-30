@@ -31,7 +31,7 @@ public:
     deprecated_attribute() = default;
     virtual attribute_info_type get_type() const
     {
-        return attribute_info_type::Deprecated;
+        return attribute_info_type::deprecated;
     }
 };
 

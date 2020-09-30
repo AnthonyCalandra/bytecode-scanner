@@ -70,7 +70,7 @@ public:
 
     virtual attribute_info_type get_type() const
     {
-        return attribute_info_type::LineNumberTable;
+        return attribute_info_type::line_number_table;
     }
 };
 

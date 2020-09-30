@@ -30,7 +30,7 @@ cp_utf8_entry parse_cp_utf8_entry(std::ifstream& file)
 {
     READ_U2_FIELD(utf8_length, "Failed to parse constant pool utf8 string entry.");
     std::string utf8_string(utf8_length, '\0');
-    if (!file.read(&utf8_string[0], utf8_length))
+    if (!file.read(utf8_string.data(), utf8_length))
     {
         throw invalid_class_format{"Failed to parse constant pool utf8 string entry."};
     }

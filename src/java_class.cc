@@ -27,7 +27,7 @@
 #include "method_info.hh"
 #include "util.hh"
 
-constexpr uint32_t CLASS_MAGIC_NUMBER = 0xCAFEBABE;
+constexpr const uint32_t CLASS_MAGIC_NUMBER = 0xCAFEBABE;
 
 struct version_info
 {
@@ -58,7 +58,7 @@ java_class java_class::parse_class_file(const std::string& path)
         throw invalid_class_format{"Failed to parse version info of class file."};
     }
 
-    auto constant_pool = constant_pool::parse_constant_pool(file);
+    constant_pool constant_pool = constant_pool::parse_constant_pool(file);
 
     READ_U2_FIELD(access_flag_bytes, "Failed to parse access flags of class file.");
     auto access_flags = classfile_access_flag{access_flag_bytes};
@@ -78,9 +78,6 @@ java_class java_class::parse_class_file(const std::string& path)
     auto class_instance = java_class{
         std::move(constant_pool), access_flags, this_index, super_index, std::move(interfaces_ids)
     };
-    // Parsing fields, methods, and attributes are slightly different in this case because we need
-    // to store a reference to the constant pool for these classes. Despite the tight coupling,
-    // this is intentional to really simplify the user-facing API.
     class_instance.fields = parse_fields(file, class_instance.cp);
     class_instance.methods = parse_methods(file, class_instance.cp);
     class_instance.attributes = parse_attributes(file, class_instance.cp);

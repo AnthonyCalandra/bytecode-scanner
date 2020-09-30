@@ -40,7 +40,7 @@ public:
 
     virtual attribute_info_type get_type() const
     {
-        return attribute_info_type::EnclosingMethod;
+        return attribute_info_type::enclosing_method;
     }
 };
 

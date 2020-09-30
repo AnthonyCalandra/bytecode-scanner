@@ -32,7 +32,7 @@ public:
 
     virtual attribute_info_type get_type() const
     {
-        return attribute_info_type::RuntimeInvisibleAnnotations;
+        return attribute_info_type::runtime_invisible_annotations;
     }
 };
 

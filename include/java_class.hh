@@ -20,6 +20,7 @@
 #pragma once
 
 #include <fstream>
+#include <memory>
 #include <optional>
 
 #include "attribute_info.hh"

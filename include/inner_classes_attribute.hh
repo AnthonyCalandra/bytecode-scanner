@@ -54,7 +54,7 @@ public:
 
     virtual attribute_info_type get_type() const
     {
-        return attribute_info_type::InnerClasses;
+        return attribute_info_type::inner_classes;
     }
 };
 

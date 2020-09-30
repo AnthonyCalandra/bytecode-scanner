@@ -36,7 +36,7 @@ public:
 
     virtual attribute_info_type get_type() const
     {
-        return attribute_info_type::SourceFile;
+        return attribute_info_type::source_file;
     }
 };
 

@@ -49,7 +49,7 @@ field_info field_info::parse_field(std::ifstream& file, const constant_pool& cp)
 field_info::field_info(const constant_pool& cp, field_access_flags access_flags,
     constant_pool_entry_id name_index, constant_pool_entry_id descriptor_index,
     entry_attributes field_attributes) :
-        cp{std::cref(cp)},
+        cp{cp},
         access_flags{access_flags},
         name_index{name_index},
         descriptor_index{descriptor_index},

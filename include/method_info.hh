@@ -20,6 +20,7 @@
 #pragma once
 
 #include <fstream>
+#include <memory>
 #include <vector>
 
 #include "attribute_info.hh"
@@ -34,7 +35,7 @@ enum class method_access_flags : uint16_t
 
 class method_info
 {
-    std::reference_wrapper<const constant_pool> cp;
+    const constant_pool& cp;
     [[maybe_unused]] method_access_flags access_flags;
     constant_pool_entry_id name_index;
     [[maybe_unused]] constant_pool_entry_id descriptor_index;
@@ -52,9 +53,7 @@ public:
 
     std::string get_name() const
     {
-        const constant_pool& cp_ref = cp;
-        const auto& method_name_utf8_ref = std::get<cp_utf8_entry>(
-            cp_ref.get_entry(name_index)->entry);
+        auto method_name_utf8_ref = cp.get_entry_as<cp_utf8_entry>(name_index).value();
         return method_name_utf8_ref.value;
     }
 

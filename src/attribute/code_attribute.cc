@@ -18,10 +18,86 @@
 */
 
 #include <fstream>
+#include <iomanip>
 #include <memory>
 #include <vector>
 
 #include "code_attribute.hh"
+
+void code_attribute::print_code(std::ostream& out) const
+{
+    for (uint32_t pc = 0; pc < code_length;)
+    {
+        const bytecode_tag curr_instr = static_cast<bytecode_tag>(bytecode[pc]);
+        const size_t curr_instr_size = get_instruction_size(curr_instr);
+
+        out << std::right << pc << ": " << std::left << get_instruction_name(curr_instr);
+        // These are variable-sized instructions and require special parsing.
+        if (curr_instr == bytecode_tag::LOOKUPSWITCH ||
+            curr_instr == bytecode_tag::TABLESWITCH)
+        {
+            // Skip past padding bytes until we get to the first address that is a multiple of 4.
+            if (pc % 4 != 0)
+            {
+                for (; pc % 4 != 0; pc++);
+            }
+
+            // Skip `default` bytes.
+            pc += 4;
+            if (curr_instr == bytecode_tag::LOOKUPSWITCH)
+            {
+                // `npairs` is a signed 4-byte, big-endian integer. This should probably never
+                // be negative.
+                uint32_t* npairs_bytes = reinterpret_cast<uint32_t*>(&bytecode[pc]);
+                uint32_t npairs = to_little_endian_int(*npairs_bytes);
+                // Each pair consists of two 4-byte ints.
+                pc += 8 * npairs;
+            }
+            else if (curr_instr == bytecode_tag::TABLESWITCH)
+            {
+                // Read both `low` and `high` signed ints. These should probably never be
+                // negative.
+                uint32_t* low_bytes = reinterpret_cast<uint32_t*>(&bytecode[pc]);
+                uint32_t low = to_little_endian_int(*low_bytes);
+                pc += 4;
+
+                uint32_t* high_bytes = reinterpret_cast<uint32_t*>(&bytecode[pc]);
+                uint32_t high = to_little_endian_int(*high_bytes);
+                // There are `high - low + 1` signed integer offsets that must be skipped.
+                pc += 4 * (high - low + 1 + 1);
+            }
+
+            out << std::endl;
+            continue;
+        }
+
+        // Instructions with an operand that references the constant pool.
+        if (curr_instr == bytecode_tag::GETSTATIC ||
+            curr_instr == bytecode_tag::PUTSTATIC ||
+            curr_instr == bytecode_tag::GETFIELD ||
+            curr_instr == bytecode_tag::PUTFIELD ||
+            curr_instr == bytecode_tag::LDC_W ||
+            curr_instr == bytecode_tag::LDC2_W ||
+            curr_instr == bytecode_tag::INVOKEVIRTUAL ||
+            curr_instr == bytecode_tag::INVOKESPECIAL ||
+            curr_instr == bytecode_tag::INVOKESTATIC ||
+            curr_instr == bytecode_tag::INVOKEINTERFACE ||
+            curr_instr == bytecode_tag::NEW ||
+            curr_instr == bytecode_tag::CHECKCAST ||
+            curr_instr == bytecode_tag::INSTANCEOF ||
+            curr_instr == bytecode_tag::ANEWARRAY ||
+            curr_instr == bytecode_tag::MULTIANEWARRAY)
+        {
+            uint8_t* index1 = reinterpret_cast<uint8_t*>(&bytecode[pc + 1]);
+            uint8_t* index2 = reinterpret_cast<uint8_t*>(&bytecode[pc + 2]);
+            constant_pool_entry_id cp_index = (*index1 << 8) | *index2;
+            out << '\t' << "#" << cp_index << "// ";
+        }
+
+        pc += curr_instr_size;
+        out << std::endl;
+    }
+}
 
 std::unique_ptr<attribute_info> parse_code_attribute(std::ifstream& file,
     const constant_pool& cp)
@@ -47,6 +123,6 @@ std::unique_ptr<attribute_info> parse_code_attribute(std::ifstream& file,
         exception_table.emplace_back(start_pc, end_pc, handler_pc, catch_pc);
     }
 
-    return std::make_unique<code_attribute>(max_stack, max_locals, code_length,
+    return std::make_unique<code_attribute>(cp, max_stack, max_locals, code_length,
         std::move(bytecode), std::move(exception_table), parse_attributes(file, cp));
 }

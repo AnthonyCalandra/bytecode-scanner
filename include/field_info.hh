@@ -20,6 +20,7 @@
 #pragma once
 
 #include <fstream>
+#include <memory>
 #include <vector>
 
 #include "attribute_info.hh"
@@ -33,7 +34,7 @@ enum class field_access_flags : uint16_t
 
 class field_info
 {
-    std::reference_wrapper<const constant_pool> cp;
+    [[maybe_unused]] const constant_pool& cp;
     [[maybe_unused]] field_access_flags access_flags;
     [[maybe_unused]] constant_pool_entry_id name_index;
     [[maybe_unused]] constant_pool_entry_id descriptor_index;

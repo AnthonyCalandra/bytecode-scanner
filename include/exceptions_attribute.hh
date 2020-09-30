@@ -37,7 +37,7 @@ public:
 
     virtual attribute_info_type get_type() const
     {
-        return attribute_info_type::Exceptions;
+        return attribute_info_type::exceptions;
     }
 };
 

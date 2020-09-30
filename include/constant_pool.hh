@@ -21,6 +21,7 @@
 
 #include <fstream>
 #include <map>
+#include <memory>
 #include <optional>
 #include <utility>
 #include <variant>
@@ -49,7 +50,7 @@ using constant_pool_entries = std::map<constant_pool_entry_id, constant_pool_ent
 
 class constant_pool
 {
-    const constant_pool_entries entries;
+    constant_pool_entries entries;
 
 public:
     explicit constant_pool(constant_pool_entries entries);
@@ -80,6 +81,20 @@ public:
         return entries.cend();
     }
 
-    std::optional<constant_pool_entry_info> get_entry(constant_pool_entry_id index) const;
+    template <typename T>
+    std::optional<T> get_entry_as(constant_pool_entry_id index) const
+    {
+        auto entries_it = entries.find(index);
+        if (entries_it == entries.cend())
+        {
+            return std::nullopt;
+        }
+        else
+        {
+            return std::get<T>(entries_it->second.entry);
+        }
+    }
+
+    std::optional<constant_pool_entry_info> get_entry_info(constant_pool_entry_id index) const;
     static constant_pool parse_constant_pool(std::ifstream& file);
 };

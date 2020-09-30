@@ -21,6 +21,7 @@
 
 #include <array>
 #include <functional>
+#include <iostream>
 #include <memory>
 #include <vector>
 
@@ -38,12 +39,16 @@ struct exception_table_entry
 
     explicit exception_table_entry(uint16_t start_pc, uint16_t end_pc, uint16_t handler_pc,
         uint16_t catch_pc) :
-            start_pc{start_pc}, end_pc{end_pc}, handler_pc{handler_pc}, catch_pc{catch_pc}
+            start_pc{start_pc},
+            end_pc{end_pc},
+            handler_pc{handler_pc},
+            catch_pc{catch_pc}
     {}
 };
 
 class code_attribute: public attribute_info
 {
+    const constant_pool& cp;
     [[maybe_unused]] uint16_t max_stack;
     [[maybe_unused]] uint16_t max_locals;
     // Despite the program counter being a 2-byte short, the code length is a 4-byte int because of
@@ -55,9 +60,10 @@ class code_attribute: public attribute_info
     entry_attributes code_attributes;
 
 public:
-    explicit code_attribute(uint16_t max_stack, uint16_t max_locals, uint32_t code_length,
-        std::unique_ptr<uint8_t[]> bytecode, std::vector<exception_table_entry> exception_table,
-        entry_attributes code_attributes) :
+    explicit code_attribute(const constant_pool& cp, uint16_t max_stack, uint16_t max_locals,
+        uint32_t code_length, std::unique_ptr<uint8_t[]> bytecode,
+        std::vector<exception_table_entry> exception_table, entry_attributes code_attributes) :
+            cp{cp},
             max_stack{max_stack},
             max_locals{max_locals},
             code_length{code_length},
@@ -65,6 +71,8 @@ public:
             exception_table{std::move(exception_table)},
             code_attributes{std::move(code_attributes)}
     {}
+
+    void print_code(std::ostream& out) const;
 
     template <bytecode_tag instr>
     using find_instructions_cb =
@@ -78,7 +86,7 @@ public:
         constexpr size_t target_instr_operands_size = get_instruction_size(instr) - 1;
         for (uint32_t pc = 0; pc < code_length;)
         {
-            bytecode_tag curr_instr = static_cast<bytecode_tag>(bytecode[pc]);
+            const bytecode_tag curr_instr = static_cast<bytecode_tag>(bytecode[pc]);
             const size_t curr_instr_size = get_instruction_size(curr_instr);
             // These are variable-sized instructions and require special parsing.
             if (curr_instr == bytecode_tag::LOOKUPSWITCH ||
@@ -148,7 +156,7 @@ public:
 
     virtual attribute_info_type get_type() const
     {
-        return attribute_info_type::Code;
+        return attribute_info_type::code;
     }
 };
 

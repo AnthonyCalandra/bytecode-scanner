@@ -33,19 +33,18 @@ std::optional<api_call_info> get_api_call_info(const constant_pool& cp, uint16_t
     const std::vector<std::string>& apis)
 {
     constant_pool_entry_id cp_method_ref = (high << 8) + low;
-    const auto& method_ref = std::get<cp_methodref_info_entry>(cp.get_entry(cp_method_ref)->entry);
+    auto method_ref = cp.get_entry_as<cp_methodref_info_entry>(cp_method_ref).value();
     // Extract the class name from the method reference.
-    const auto& class_ref = std::get<cp_class_info_entry>(cp.get_entry(method_ref.cp_index)->entry);
-    const auto& class_name_utf8_ref = std::get<cp_utf8_entry>(cp.get_entry(class_ref.cp_index)->entry);
+    auto class_ref = cp.get_entry_as<cp_class_info_entry>(method_ref.cp_index).value();
+    auto class_name_utf8_ref = cp.get_entry_as<cp_utf8_entry>(class_ref.cp_index).value();
     // If the class name matches ones we're looking for, get the method name too, and
     // return the API handle.
     auto apis_iter = std::find(apis.cbegin(), apis.cend(), class_name_utf8_ref.value);
     if (apis_iter != apis.cend())
     {
         // Extract the method name from the constant pool.
-        const auto& name_and_type_ref = std::get<cp_name_and_type_index_entry>(
-            cp.get_entry(method_ref.cp_index2)->entry);
-        const auto& method_name_utf8_ref = std::get<cp_utf8_entry>(cp.get_entry(name_and_type_ref.cp_index)->entry);
+        auto name_and_type_ref = cp.get_entry_as<cp_name_and_type_index_entry>(method_ref.cp_index2).value();
+        auto method_name_utf8_ref = cp.get_entry_as<cp_utf8_entry>(name_and_type_ref.cp_index).value();
         return std::make_optional<api_call_info>({
             // Store the pc instead of line number for now.
             pc, class_name_utf8_ref.value + "." + method_name_utf8_ref.value, ""
@@ -59,7 +58,7 @@ uint16_t get_line_number(const code_attribute& code, uint16_t pc)
 {
     for (const auto& code_attr: code.get_code_attributes())
     {
-        if (code_attr->get_type() == attribute_info_type::LineNumberTable)
+        if (code_attr->get_type() == attribute_info_type::line_number_table)
         {
             const auto& lnt_attr = dynamic_cast<const line_number_table_attribute&>(*code_attr);
             return *lnt_attr.find_line_number_from_pc(pc);
@@ -80,7 +79,7 @@ std::vector<api_call_info> find_api_calls(const java_class& clazz, const std::ve
         for (const auto& attr: method.get_method_attributes())
         {
             // The `Code` attribute contains raw bytecode and line number information.
-            if (attr->get_type() == attribute_info_type::Code)
+            if (attr->get_type() == attribute_info_type::code)
             {
                 const auto& code_attr = dynamic_cast<const code_attribute&>(*attr);
                 const auto instruction_cb = [&](uint16_t pc, uint8_t high, uint8_t low)

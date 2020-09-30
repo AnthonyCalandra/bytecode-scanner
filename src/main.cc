@@ -94,9 +94,7 @@ void do_dump_cp(const java_class& clazz)
                 entry_str << "#" << arg.cp_index;
 
                 // Class, String, and MethodType all point to a Utf8 index.
-                const constant_pool_entry_info cp_entry_info = constant_pool.get_entry(arg.cp_index).value();
-                const auto& utf8_entry = std::get<cp_utf8_entry>(cp_entry_info.entry);
-
+                auto utf8_entry = constant_pool.get_entry_as<cp_utf8_entry>(arg.cp_index).value();
                 pointed_str << "-> " << utf8_entry.value;
             }
             else if constexpr (std::is_same_v<cp_entry_type, cp_double_index_entry>)
@@ -127,34 +125,28 @@ void do_dump_cp(const java_class& clazz)
                     current_entry_type == constant_pool_type::InterfaceMethodRef)
                 {
                     // Get Class entry.
-                    const constant_pool_entry_info class_entry_info =
-                        constant_pool.get_entry(current_entry.cp_index).value();
-                    const auto& class_entry = std::get<cp_class_info_entry>(class_entry_info.entry);
+                    auto class_entry =
+                        constant_pool.get_entry_as<cp_class_info_entry>(current_entry.cp_index).value();
                     // From the Class entry, get the Utf8 entry.
-                    const constant_pool_entry_info utf8_entry_info =
-                        constant_pool.get_entry(class_entry.cp_index).value();
-                    const auto& utf8_entry = std::get<cp_utf8_entry>(utf8_entry_info.entry);
-
+                    auto utf8_entry =
+                        constant_pool.get_entry_as<cp_utf8_entry>(class_entry.cp_index).value();
                     pointed_str << utf8_entry.value << ".";
 
                     // To avoid repeating code, set the current entry to the NameAndType
                     // entry.
-                    const constant_pool_entry_info name_and_type_entry_info =
-                        constant_pool.get_entry(current_entry.cp_index2).value();
                     current_entry_type = constant_pool_type::NameAndType;
-                    current_entry = std::get<cp_double_index_entry>(name_and_type_entry_info.entry);
+                    current_entry =
+                        constant_pool.get_entry_as<cp_double_index_entry>(current_entry.cp_index2).value();
                 }
 
                 // NameAndType points to two Utf8 entries.
                 if (current_entry_type == constant_pool_type::NameAndType)
                 {
                     // Pull out the the Utf8 entries from NameAndType (respectively).
-                    const constant_pool_entry_info name_entry_info =
-                        constant_pool.get_entry(current_entry.cp_index).value();
-                    const constant_pool_entry_info type_entry_info =
-                        constant_pool.get_entry(current_entry.cp_index2).value();
-                    const auto& name_utf8_entry = std::get<cp_utf8_entry>(name_entry_info.entry);
-                    const auto& type_utf8_entry = std::get<cp_utf8_entry>(type_entry_info.entry);
+                    auto name_utf8_entry =
+                        constant_pool.get_entry_as<cp_utf8_entry>(current_entry.cp_index).value();
+                    auto type_utf8_entry =
+                        constant_pool.get_entry_as<cp_utf8_entry>(current_entry.cp_index2).value();
 
                     // `<init>` has quotes around it according to Java's tool; follow
                     // their format.
@@ -201,6 +193,24 @@ void do_dump_cp(const java_class& clazz)
     }
 }
 
+void do_dump_class(const java_class& clazz)
+{
+    const std::vector<method_info>& methods = clazz.get_class_methods();
+    for (const auto& method : methods)
+    {
+        std::string method_name = method.get_name();
+        std::cout << method_name << ":" << std::endl;
+
+        const entry_attributes& attributes = method.get_method_attributes();
+        for (const auto& attribute : attributes)
+        {
+            std::cout << static_cast<int>(attribute->get_type()) << std::endl;
+        }
+
+        std::cout << std::endl;
+    }
+}
+
 void do_scan(const java_class& clazz, const std::string& class_name, const std::vector<std::string>& api_names)
 {
     std::cout << "Found the following API calls in " << class_name << ":" << std::endl;
@@ -212,7 +222,7 @@ void do_scan(const java_class& clazz, const std::string& class_name, const std::
     }
 }
 
-void do_command(cxxopts::ParseResult args) {
+void do_command(cxxopts::ParseResult args, bool& error) {
     const auto class_name = args["input"].as<std::string>();
     try
     {
@@ -221,6 +231,10 @@ void do_command(cxxopts::ParseResult args) {
         {
             do_dump_cp(clazz);
         }
+        else if (args.count("dump-class"))
+        {
+            do_dump_class(clazz);
+        }
         else if (args.count("scan"))
         {
             // The constant pool stores APIs as, for example, "java/io/PrintStream" instead of the
@@ -228,6 +242,10 @@ void do_command(cxxopts::ParseResult args) {
             auto api_names = args["scan"].as<std::vector<std::string>>();
             denormalize_api_names(api_names);
             do_scan(clazz, class_name, api_names);
+        }
+        else
+        {
+            error = true;
         }
     }
     catch (const std::ios::failure& io_failure)
@@ -248,6 +266,7 @@ int main(int argc, char** argv)
         .add_options()
             ("input", "Input class file", cxxopts::value<std::string>())
             ("c,dump-cp", "Dump constant pool")
+            ("d,dump-class", "Dump given class")
             ("s,scan", "Scan for a CSV list of APIs", cxxopts::value<std::vector<std::string>>());
     options.parse_positional({ "input" });
 
@@ -262,7 +281,7 @@ int main(int argc, char** argv)
 
         if (!error)
         {
-            do_command(std::move(args));
+            do_command(std::move(args), error);
         }
     }
     catch (const cxxopts::OptionException& e)
